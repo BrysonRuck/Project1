@@ -76,14 +76,14 @@ class LoginActivity : ComponentActivity() {
                 label = { Text("Password") }
             )
             Button(onClick = {
-                //check db to see if user/pass exist TOGETHER
+                // TODO: check db to see if user/pass exist TOGETHER
             }) {
                 Text("Log in")
             }
 
             Text("Don't have an account?")
             Button(onClick = {
-                // redirect to acc creation..
+                // TODO: redirect to acc creation..
             }) {
                 Text("Create account")
             }
