@@ -11,13 +11,15 @@ import androidx.room.PrimaryKey
 data class UserEntity(
     @PrimaryKey(autoGenerate = true)
     val userId: Long = 0,
+
     val username: String,
     val password: String,
-    val location: String = DEFAULT_LOCATION,
+
+    val address: String = DEFAULT_ADDRESS,
     val distanceMiles: Int = DEFAULT_DISTANCE_MILES
 ) {
     companion object {
-        const val DEFAULT_LOCATION = "California State University, Monterey Bay"
+        const val DEFAULT_ADDRESS = "100 Campus Center, Seaside, CA 93955"
         const val DEFAULT_DISTANCE_MILES = 10
     }
 }
