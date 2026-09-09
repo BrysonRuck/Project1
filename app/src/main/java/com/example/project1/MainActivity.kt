@@ -14,34 +14,66 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.project1.ui.theme.Project1Theme
 
-
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             Project1Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                FavoritePage()
+
+                val navController = rememberNavController()
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home"
+                    ) {
+                        composable("home") {
+                            Greeting(
+                                name = "Android",
+                                onFavoritesClick = {
+                                    navController.navigate("favorites")
+                                }
+                            )
+                        }
+
+                        composable("favorites") {
+                            FavoritePage()
+                        }
+                    }
                 }
             }
         }
     }
 }
-
+@Composable
+fun FavoritesPage() {
+    Text("Favorites Page")
+}
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(
+    name: String,
+    modifier: Modifier = Modifier,
+    onFavoritesClick: () -> Unit
+) {
     Text(
         text = "Hello $name!",
         modifier = modifier
     )
+
     Button(
         onClick = {
-
+            onFavoritesClick()
         }
     ) {
-        Text("Add")
+        Text("Favorites")
     }
 }
 
@@ -49,6 +81,9 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     Project1Theme {
-        Greeting("Android")
+        Greeting(
+            name = "Android",
+            onFavoritesClick = {}
+        )
     }
 }
