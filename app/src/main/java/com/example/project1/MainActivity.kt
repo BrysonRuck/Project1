@@ -1,11 +1,13 @@
 package com.example.project1
-
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,10 +34,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     Text(
         text = "Hello $name!",
         modifier = modifier
     )
+    Button(
+        onClick = {
+            //navigate to login screen
+            context.startActivity(Intent(context, LoginActivity::class.java))
+        },
+        modifier = Modifier
+    ) {
+        Text("skip to login")
+    }
 }
 
 @Preview(showBackground = true)

@@ -1,6 +1,7 @@
-package FoodPicker
-
+package com.example.project1
+//shoutouts to daniel because turns out the app was screaming at me for having it in a different package.
 import android.os.Bundle
+import androidx.compose.foundation.layout.Arrangement
 import android.widget.Button
 import android.widget.EditText
 import androidx.activity.ComponentActivity
@@ -20,10 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
-import com.example.project1.Greeting
 import com.example.project1.ui.theme.Project1Theme
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.em
 
 //Like javaFX, any activities I make need to extend what's called ComponentActivity() because it needs to invoke a constructor of ComponentActivity.
 //this concept of extending a constructor in a class is new. i will do more learning
@@ -45,23 +43,28 @@ class LoginActivity : ComponentActivity() {
         setContent {
             Project1Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    LoginScreen()
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    //i found out that my composable function must be inside column in order for paddings to apply.
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
                         Text("Log in/Create an Account") //,Modifier, Color.Unspecified, TextUnit(20.em)
-                        Text("Username")
-
+                        LoginScreen()// all functions in column .. will get sequentially added to the vbox
+                        // in a sense this is reminiscent of the command pattern from software design!
                     }
                 }
             }
         }
     }
 }
-    @Composable
+    @Composable     //this is a marker for methods that describe.. composable class ui elements.
+    // somehow methods can be defined outside of classes like python!
     fun LoginScreen() {
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
-        Column {
-            Text("Account Log In")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             TextField(
                 value = username,
                 onValueChange = { username = it },
@@ -72,13 +75,13 @@ class LoginActivity : ComponentActivity() {
                 onValueChange = { password = it },
                 label = { Text("Password") }
             )
-
             Button(onClick = {
                 //check db to see if user/pass exist TOGETHER
             }) {
                 Text("Log in")
             }
 
+            Text("Don't have an account?")
             Button(onClick = {
                 // redirect to acc creation..
             }) {
@@ -86,4 +89,3 @@ class LoginActivity : ComponentActivity() {
             }
         }
     }
-    //this is a marker for methods that describe.. composable class ui elements. somehow methods can be defined outside of classes like python!
