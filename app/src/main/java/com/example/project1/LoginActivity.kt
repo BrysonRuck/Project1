@@ -1,9 +1,11 @@
 package com.example.project1
 //shoutouts to daniel because turns out the app was screaming at me for having it in a different package.
+import android.content.Intent
 import android.os.Bundle
 import androidx.compose.foundation.layout.Arrangement
 import android.widget.Button
-import android.widget.EditText
+import androidx.compose.ui.platform.LocalContext
+//import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,8 +32,8 @@ class LoginActivity : ComponentActivity() {
     This activity is for Issue 1. It will help render the login page with 2 fields and 2 buttons (login and create account)
     Disclosure: I used ai to learn kotlin syntax, departing from my experience in java. comments/annotations I leave are largely for my learning and feature takeaways.
  */
-    private lateinit var UsernameField: EditText // private lateinit (essentially promises to assign a value to this null var later) var(different from val which is a final) attributeName: dataType
-    private lateinit var PasswordField: EditText
+//    private lateinit var UsernameField: EditText // private lateinit (essentially promises to assign a value to this null var later) var(different from val which is a final) attributeName: dataType
+//    private lateinit var PasswordField: EditText
 
     private lateinit var loginButton: Button
     private lateinit var createAccButton: Button
@@ -80,10 +82,11 @@ class LoginActivity : ComponentActivity() {
             }) {
                 Text("Log in")
             }
-
+            val context = LocalContext.current
             Text("Don't have an account?")
             Button(onClick = {
                 // TODO: redirect to acc creation..
+                context.startActivity(Intent(context, CreateAccActivity::class.java))
             }) {
                 Text("Create account")
             }
