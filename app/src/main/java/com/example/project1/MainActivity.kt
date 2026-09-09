@@ -32,7 +32,8 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = "home"
+                        startDestination = "home",
+                        modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("home") {
                             Greeting(
@@ -52,10 +53,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-@Composable
-fun FavoritesPage() {
-    Text("Favorites Page")
-}
+
 
 @Composable
 fun Greeting(
