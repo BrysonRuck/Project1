@@ -1,47 +1,66 @@
 package com.example.project1
 
+import android.app.Activity
+import android.content.res.ColorStateList
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.project1.ui.theme.Project1Theme
+import android.widget.TextView
 
-class MainActivity : ComponentActivity() {
+class MainActivity : Activity() {
+    private lateinit var homeButton: TextView
+    private lateinit var favoritesButton: TextView
+    private lateinit var profileButton: TextView
+    private lateinit var pageTitle: TextView
+    private lateinit var pageSubtitle: TextView
+    private lateinit var pageBody: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            Project1Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        setContentView(R.layout.activity_main)
+
+        homeButton = findViewById(R.id.homeButton)
+        favoritesButton = findViewById(R.id.favoritesButton)
+        profileButton = findViewById(R.id.profileButton)
+        pageTitle = findViewById(R.id.pageTitle)
+        pageSubtitle = findViewById(R.id.pageSubtitle)
+        pageBody = findViewById(R.id.pageBody)
+
+        homeButton.setOnClickListener { showPage("Home") }
+        favoritesButton.setOnClickListener { showPage("Favorites") }
+        profileButton.setOnClickListener { showPage("Profile") }
+
+        showPage("Home")
+    }
+
+    private fun showPage(page: String) {
+        pageTitle.text = page
+
+        when (page) {
+            "Favorites" -> {
+                pageSubtitle.setText(R.string.favorites_subtitle)
+                pageBody.setText(R.string.favorites_body)
+            }
+            "Profile" -> {
+                pageSubtitle.setText(R.string.profile_subtitle)
+                pageBody.setText(R.string.profile_body)
+            }
+            else -> {
+                pageSubtitle.setText(R.string.home_subtitle)
+                pageBody.setText(R.string.home_body)
             }
         }
+
+        setSelected(homeButton, page == "Home")
+        setSelected(favoritesButton, page == "Favorites")
+        setSelected(profileButton, page == "Profile")
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    private fun setSelected(button: TextView, selected: Boolean) {
+        val selectedColor = getColor(R.color.nav_selected)
+        val defaultColor = getColor(R.color.nav_default)
+        val color = if (selected) selectedColor else defaultColor
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Project1Theme {
-        Greeting("Android")
+        button.isSelected = selected
+        button.setTextColor(color)
+        button.compoundDrawableTintList = ColorStateList.valueOf(color)
     }
 }
