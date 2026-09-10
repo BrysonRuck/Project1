@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Project1</string>
+    <string name="title_activity_set_preferences">SetPreferencesActivity</string>
+    <string name="home_subtitle">Welcome to the Home page</string>
+    <string name="home_body">This is the body of the Home page content.</string>
+    <string name="favorites_subtitle">Your Favorite Items</string>
+    <string name="favorites_body">This is the body of the Favorites page content.</string>
+    <string name="profile_subtitle">User Profile Information</string>
+    <string name="profile_body">This is the body of the Profile page content.</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_profile">Profile</string>
 </resources>
