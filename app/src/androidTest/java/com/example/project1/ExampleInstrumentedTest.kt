@@ -21,4 +21,10 @@ class ExampleInstrumentedTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.example.project1", appContext.packageName)
     }
+    @Test
+    fun tappingFavoritesShowsFavoritesPage() {
+        onView(withText("Favorites")).perform(click())
+        onView(withId(R.id.pageTitle)).check(matches(withText("Favorites")))
+        onView(withId(R.id.pageBody)).check(matches(withText(R.string.favorites_body)))
+    }
 }
