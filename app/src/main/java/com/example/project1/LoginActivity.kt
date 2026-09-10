@@ -3,9 +3,8 @@ package com.example.project1
 import android.content.Intent
 import android.os.Bundle
 import androidx.compose.foundation.layout.Arrangement
-import android.widget.Button
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
-//import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -35,9 +34,9 @@ class LoginActivity : ComponentActivity() {
 //    private lateinit var UsernameField: EditText // private lateinit (essentially promises to assign a value to this null var later) var(different from val which is a final) attributeName: dataType
 //    private lateinit var PasswordField: EditText
 
-    private lateinit var loginButton: Button
-    private lateinit var createAccButton: Button
-
+//    private lateinit var loginButton: Button
+//    private lateinit var createAccButton: Button
+//turns out these vars arenrt necessary to running the activity and it was just redundant and messy imports and unneccessary stuff
     //most of this is copied from the main activity kotlin example that was generated
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,11 +67,13 @@ class LoginActivity : ComponentActivity() {
         var password by remember { mutableStateOf("") }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             TextField(
+                modifier = Modifier.testTag("usernameField"),
                 value = username,
                 onValueChange = { username = it },
                 label = { Text("Username") }
             )
             TextField(
+                modifier = Modifier.testTag("passwordField"),
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Password") }
