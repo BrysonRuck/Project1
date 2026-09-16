@@ -32,6 +32,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.theme.Project1Theme
+import android.content.Intent
+import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
 
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
@@ -98,11 +101,43 @@ fun HomePage() {
 
 @Composable
 fun ProfilePage() {
-    PageContent(
-        title = "Profile",
-        subtitle = stringResource(R.string.profile_subtitle),
-        body = stringResource(R.string.profile_body)
-    )
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Profile",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.profile_subtitle),
+            fontSize = 18.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.profile_body),
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Button(
+            onClick = {
+                context.startActivity(
+                    Intent(context, SetPreferencesActivity::class.java)
+                )
+            },
+            modifier = Modifier.padding(top = 24.dp)
+        ) {
+            Text("Update your profile")
+        }
+    }
 }
 
 @Composable
