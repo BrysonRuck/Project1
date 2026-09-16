@@ -70,5 +70,6 @@ class SetPreferencesActivity : ComponentActivity() {
     companion object {
         private const val CURRENT_USER_ID = 1L
         //CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
+        //REMEMBER THIS
     }
 }
