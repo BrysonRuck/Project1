@@ -135,11 +135,7 @@ fun SetPreferencesScreen(
 
         if (user == null) {
             Text(
-                text = if (loadMessage.isBlank()) {
-                    "Loading profile..."
-                } else {
-                    loadMessage
-                }
+                text = loadMessage.ifBlank { "Loading profile..." }
             )
         } else {
             Text("Username: ${user.username}")

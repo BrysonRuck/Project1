@@ -32,7 +32,7 @@ class SetPreferencesActivity : ComponentActivity() {
                         if (user == null) {
                             loadMessage = "Error: could not load the current user."
                         }
-                    } catch (error: Exception) {
+                    } catch (_: Exception) {
                         loadMessage = "Error: could not load the current user."
                     }
                 }
@@ -55,7 +55,7 @@ class SetPreferencesActivity : ComponentActivity() {
                                 user = updatedUser
                                 null
                             }
-                        } catch (error: Exception) {
+                        } catch (_: Exception) {
                             "Error: could not save your changes."
                         }
                     },
@@ -70,6 +70,6 @@ class SetPreferencesActivity : ComponentActivity() {
     companion object {
         private const val CURRENT_USER_ID = 1L
         //CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
-        //REMEMBER THIS
+        // REMEMBER THIS
     }
 }
