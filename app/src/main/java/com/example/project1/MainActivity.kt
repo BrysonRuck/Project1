@@ -35,12 +35,18 @@ import com.example.project1.ui.theme.Project1Theme
 import android.content.Intent
 import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import com.example.project1.database.AppDatabase
 
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
     object Favorites : Screen("favorites", R.string.nav_favorites, Icons.Default.Favorite)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
+
+private const val PROFILE_USER_ID = 1L
+// TODO: Make this the logged-in user's userId.
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,6 +108,17 @@ fun HomePage() {
 @Composable
 fun ProfilePage() {
     val context = LocalContext.current
+    val database = remember(context) {
+        AppDatabase.getDatabase(context)
+    }
+
+    val user by database.userDao()
+        .observeUser(PROFILE_USER_ID)
+        .collectAsState(initial = null)
+
+    val favoriteCount by database.favoriteDao()
+        .observeFavoriteCountForUser(PROFILE_USER_ID)
+        .collectAsState(initial = 0)
 
     Column(
         modifier = Modifier
@@ -113,19 +130,29 @@ fun ProfilePage() {
             text = "Profile",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        Text(
-            text = stringResource(R.string.profile_subtitle),
-            fontSize = 18.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        if (user == null) {
+            Text("Loading profile...")
+        } else {
+            Text(
+                text = "Username: ${user!!.username}",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-        Text(
-            text = stringResource(R.string.profile_body),
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+            Text(
+                text = "Preferred radius: ${user!!.distanceMiles} miles",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Text(
+                text = "$favoriteCount favorites",
+                fontSize = 18.sp
+            )
+        }
 
         Button(
             onClick = {
