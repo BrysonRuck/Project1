@@ -46,7 +46,7 @@ sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) 
 }
 
 private const val PROFILE_USER_ID = 1L
-// TODO: Make this the logged-in user's userId.
+//CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
