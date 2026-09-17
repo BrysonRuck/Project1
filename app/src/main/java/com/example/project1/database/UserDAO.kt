@@ -22,4 +22,13 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
     suspend fun getUserByUsername(username: String): UserEntity?
+
+    //this method should verify that a user password pair exist in the database together
+    @Query("""
+        SELECT * FROM users
+        WHERE username = :username
+        AND password = :password
+        LIMIT 1
+    """)
+    suspend fun searchUserVerify(username: String, password: String): UserEntity?
 }
