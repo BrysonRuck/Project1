@@ -17,4 +17,7 @@ interface FavoriteDao {
 
     @Query("SELECT * FROM favorites WHERE userId = :userId ORDER BY restaurantName")
     fun observeFavoritesForUser(userId: Long): Flow<List<FavoriteEntity>>
+
+    @Query("SELECT COUNT(*) FROM favorites WHERE userId = :userId")
+    fun observeFavoriteCountForUser(userId: Long): Flow<Int>
 }

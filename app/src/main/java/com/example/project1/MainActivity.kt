@@ -54,12 +54,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.theme.Project1Theme
+import android.content.Intent
+import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import com.example.project1.database.AppDatabase
 
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
     object Favorites : Screen("favorites", R.string.nav_favorites, Icons.Default.Favorite)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
+
+private const val PROFILE_USER_ID = 1L
+//CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -176,11 +185,64 @@ fun RestaurantCard(restaurant: Restaurant) {
 
 @Composable
 fun ProfilePage() {
-    PageContent(
-        title = "Profile",
-        subtitle = stringResource(R.string.profile_subtitle),
-        body = stringResource(R.string.profile_body)
-    )
+    val context = LocalContext.current
+    val database = remember(context) {
+        AppDatabase.getDatabase(context)
+    }
+
+    val user by database.userDao()
+        .observeUser(PROFILE_USER_ID)
+        .collectAsState(initial = null)
+
+    val favoriteCount by database.favoriteDao()
+        .observeFavoriteCountForUser(PROFILE_USER_ID)
+        .collectAsState(initial = 0)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Profile",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        if (user == null) {
+            Text("Loading profile...")
+        } else {
+            Text(
+                text = "Username: ${user!!.username}",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Text(
+                text = "Preferred radius: ${user!!.distanceMiles} miles",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Text(
+                text = "$favoriteCount favorites",
+                fontSize = 18.sp
+            )
+        }
+
+        Button(
+            onClick = {
+                context.startActivity(
+                    Intent(context, SetPreferencesActivity::class.java)
+                )
+            },
+            modifier = Modifier.padding(top = 24.dp)
+        ) {
+            Text("Update your profile")
+        }
+    }
 }
 
 @Composable
