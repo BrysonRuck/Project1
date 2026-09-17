@@ -33,6 +33,63 @@ class SetPreferencesActivity : ComponentActivity() {
                             loadMessage = "Error: could not load the current user."
                         }
                     } catch (_: Exception) {
+                        statusMessage = "Error: could not load preferences."
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text("Address")
+
+                    OutlinedTextField(
+                        value = address,
+                        onValueChange = { address = it }
+                    )
+
+                    Text("Distance (in miles) for radius")
+
+                    OutlinedTextField(
+                        value = distance,
+                        onValueChange = { distance = it },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        )
+                    )
+
+                    Button(
+                        onClick = {
+                            val distanceMiles = distance.toIntOrNull()
+
+                            if ((address.isBlank()) || (distanceMiles == null)) {
+                                statusMessage = "Error: could not update preferences."
+                            } else {
+                                coroutineScope.launch {
+                                    try {
+                                        val database = AppDatabase.getDatabase(applicationContext)
+                                        val user = database.userDao().getUserById(DEFAULT_USER_ID)
+
+                                        if (user == null) {
+                                            statusMessage =
+                                                "Error: could not update preferences."
+                                        } else {
+                                        val updatedUser = user.copy(
+                                            address = address.trim(),
+                                            distanceMiles = distanceMiles,
+                                        )
+
+                                            database.userDao().updateUser(updatedUser)
+                                            statusMessage =
+                                                "Your preferences have been updated."
+                                        }
+                                    } catch (_: Exception) {
+                                        statusMessage =
+                                            "Error: could not update preferences."
+                                    }
+                                }
                         loadMessage = "Error: could not load the current user."
                     }
                 }

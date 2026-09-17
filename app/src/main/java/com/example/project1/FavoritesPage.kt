@@ -1,6 +1,5 @@
 package com.example.project1
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,7 @@ fun FavoritePage() {
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "Favorites",
@@ -34,9 +33,7 @@ fun FavoritePage() {
 
         Button(
             onClick = {
-                myList.add((Math.random() * 5 - 1).toString())
-
-
+                myList.add(((Math.random() * 5) - 1).toString())
             }
         ) {
             Text("Add")
