@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import androidx.room.Delete
 
 @Dao
 interface UserDao {
@@ -25,4 +26,6 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE username COLLATE NOCASE = :username LIMIT 1")
     suspend fun getUserByUsernameIgnoringCase(username: String): UserEntity?
+    @Delete
+    suspend fun deleteUser(user: UserEntity)
 }

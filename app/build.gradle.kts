@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -29,17 +31,18 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "21"
     }
     buildFeatures {
         compose = true
     }
 }
 dependencies {
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -64,4 +67,26 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.navigation.compose)
+    detektPlugins(libs.detekt.formatting)
+}
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "21"
+    reports {
+        html {
+            required.set(true)
+            outputLocation.set(file("${project.rootDir}/detekt-report.html"))
+        }
+        txt.required.set(false)
+        xml.required.set(false)
+        sarif.required.set(false)
+    }
+}
+
+tasks.named("check") {
+    dependsOn("detekt")
 }
