@@ -3,26 +3,14 @@ package com.example.project1
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.example.project1.database.AppDatabase
+import com.example.project1.database.UserEntity
 import com.example.project1.ui.theme.Project1Theme
-import kotlinx.coroutines.launch
 
 class SetPreferencesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,94 +18,58 @@ class SetPreferencesActivity : ComponentActivity() {
 
         setContent {
             Project1Theme {
-                var address by remember { mutableStateOf("") }
-                var distance by remember { mutableStateOf("") }
-                var statusMessage by remember { mutableStateOf("") }
-                val coroutineScope = rememberCoroutineScope()
+                val database = remember {
+                    AppDatabase.getDatabase(applicationContext)
+                }
+
+                var user by remember { mutableStateOf<UserEntity?>(null) }
+                var loadMessage by remember { mutableStateOf("") }
 
                 LaunchedEffect(Unit) {
                     try {
-                        val database = AppDatabase.getDatabase(applicationContext)
-                        val user = database.userDao().getUserById(DEFAULT_USER_ID)
+                        user = database.userDao().getUserById(CURRENT_USER_ID)
 
-                        if (user != null) {
-                            address = user.address
-                            distance = user.distanceMiles.toString()
-                        } else {
-                            statusMessage = "Error: could not load preferences."
+                        if (user == null) {
+                            loadMessage = "Error: could not load the current user."
                         }
-                    } catch (error: Exception) {
-                        statusMessage = "Error: could not load preferences."
+                    } catch (_: Exception) {
+                        loadMessage = "Error: could not load the current user."
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text("Address")
+                SetPreferencesScreen(
+                    user = user,
+                    loadMessage = loadMessage,
+                    onSaveUser = { updatedUser ->
+                        try {
+                            val existingUser = database.userDao()
+                                .getUserByUsernameIgnoringCase(updatedUser.username)
 
-                    OutlinedTextField(
-                        value = address,
-                        onValueChange = { address = it }
-                    )
-
-                    Text("Distance (in miles) for radius")
-
-                    OutlinedTextField(
-                        value = distance,
-                        onValueChange = { distance = it },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number
-                        )
-                    )
-
-                    Button(
-                        onClick = {
-                            val distanceMiles = distance.toIntOrNull()
-
-                            if (address.isBlank() || distanceMiles == null) {
-                                statusMessage = "Error: could not update preferences."
+                            if (
+                                existingUser != null &&
+                                existingUser.userId != updatedUser.userId
+                            ) {
+                                "That username is already in use."
                             } else {
-                                coroutineScope.launch {
-                                    try {
-                                        val database = AppDatabase.getDatabase(applicationContext)
-                                        val user = database.userDao().getUserById(DEFAULT_USER_ID)
-
-                                        if (user == null) {
-                                            statusMessage =
-                                                "Error: could not update preferences."
-                                        } else {
-                                            val updatedUser = user.copy(
-                                                address = address.trim(),
-                                                distanceMiles = distanceMiles
-                                            )
-
-                                            database.userDao().updateUser(updatedUser)
-                                            statusMessage =
-                                                "Your preferences have been updated."
-                                        }
-                                    } catch (error: Exception) {
-                                        statusMessage =
-                                            "Error: could not update preferences."
-                                    }
-                                }
+                                database.userDao().updateUser(updatedUser)
+                                user = updatedUser
+                                null
                             }
+                        } catch (_: Exception) {
+                            "Error: could not save your changes."
                         }
-                    ) {
-                        Text("Save preferences")
+                    },
+                    onBackToProfile = {
+                        finish()
                     }
-
-                    Text(statusMessage)
-                }
+                )
             }
         }
     }
 
     companion object {
-        private const val DEFAULT_USER_ID = 1L
+        private const val CURRENT_USER_ID = 1L
         //CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
+        // REMEMBER THIS
     }
 }
