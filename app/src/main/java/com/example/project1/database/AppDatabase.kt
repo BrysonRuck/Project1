@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [UserEntity::class, FavoriteEntity::class],
     version = 1,
-    exportSchema = false
+    exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
@@ -32,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private val seedDefaultUserCallback = object : RoomDatabase.Callback() {
+        private val seedDefaultUserCallback = object : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
 

@@ -46,7 +46,7 @@ class SetPreferencesActivity : ComponentActivity() {
                         } else {
                             statusMessage = "Error: could not load preferences."
                         }
-                    } catch (error: Exception) {
+                    } catch (_: Exception) {
                         statusMessage = "Error: could not load preferences."
                     }
                 }
@@ -55,7 +55,7 @@ class SetPreferencesActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text("Address")
 
@@ -78,7 +78,7 @@ class SetPreferencesActivity : ComponentActivity() {
                         onClick = {
                             val distanceMiles = distance.toIntOrNull()
 
-                            if (address.isBlank() || distanceMiles == null) {
+                            if ((address.isBlank()) || (distanceMiles == null)) {
                                 statusMessage = "Error: could not update preferences."
                             } else {
                                 coroutineScope.launch {
@@ -90,16 +90,16 @@ class SetPreferencesActivity : ComponentActivity() {
                                             statusMessage =
                                                 "Error: could not update preferences."
                                         } else {
-                                            val updatedUser = user.copy(
-                                                address = address.trim(),
-                                                distanceMiles = distanceMiles
-                                            )
+                                        val updatedUser = user.copy(
+                                            address = address.trim(),
+                                            distanceMiles = distanceMiles,
+                                        )
 
                                             database.userDao().updateUser(updatedUser)
                                             statusMessage =
                                                 "Your preferences have been updated."
                                         }
-                                    } catch (error: Exception) {
+                                    } catch (_: Exception) {
                                         statusMessage =
                                             "Error: could not update preferences."
                                     }
