@@ -68,6 +68,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+
+
 @Composable
 fun FavoritePage() {
     val context = LocalContext.current
@@ -116,17 +119,22 @@ fun FavoritePage() {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    start = 16.dp,
-                                    end = 8.dp,
-                                    top = 16.dp,
-                                    bottom = 16.dp
-                                ),
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            AsyncImage(
+                                model = favorite.restaurantImgURL,
+                                contentDescription = favorite.restaurantName,
+                                modifier = Modifier
+                                    .size(90.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
 
                             Column(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 12.dp)
                             ) {
                                 Text(
                                     text = favorite.restaurantName,
@@ -145,8 +153,7 @@ fun FavoritePage() {
                             IconButton(
                                 onClick = {
                                     coroutineScope.launch {
-                                        database.favoriteDao()
-                                            .deleteFavorite(favorite)
+                                        database.favoriteDao().deleteFavorite(favorite)
                                     }
                                 }
                             ) {
@@ -157,12 +164,13 @@ fun FavoritePage() {
                                 )
                             }
                         }
+                        }
                     }
                 }
             }
         }
     }
-}
+
 
 
 
