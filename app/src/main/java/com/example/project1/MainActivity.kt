@@ -55,19 +55,25 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.theme.Project1Theme
 import android.content.Intent
+
+import com.example.project1.database.FavoriteEntity
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+
 import androidx.compose.material3.Button
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import com.example.project1.database.AppDatabase
-
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Row
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
     object Favorites : Screen("favorites", R.string.nav_favorites, Icons.Default.Favorite)
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
 
-private const val PROFILE_USER_ID = 1L
+const val PROFILE_USER_ID = 1L
 //CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
 
 class MainActivity : ComponentActivity() {
@@ -118,21 +124,41 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun HomePage() {
-    // This are the states that drive the loading, error, empty and restaurant-list views
     var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
+
     var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
 
-    // This is where the load preference is done and make the network request once Home enters composition
+    val database = remember(context) {
+        AppDatabase.getDatabase(context)
+    }
+
+    val favoriteList by database.favoriteDao()
+        .observeFavoritesForUser(PROFILE_USER_ID)
+        .collectAsState(initial = emptyList())
+
+    val favoriteIds = favoriteList
+        .map { it.restaurantId }
+        .toSet()
+
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         try {
-            val user = AppDatabase.getDatabase(context)
-                .userDao().getUserById(1L)
-            if (user == null) error("No saved preferences found")
-            restaurants = FoursquareRepository().searchRestaurants(user.address, user.distanceMiles)
+            val user = database.userDao().getUserById(PROFILE_USER_ID)
+
+            if (user == null) {
+                error("No saved preferences found")
+            }
+
+            restaurants = FakeRestaurantRepository()
+                .searchRestaurants(user.address, user.distanceMiles)
+
         } catch (error: Exception) {
             errorMessage = error.message ?: "Could not load restaurants"
         } finally {
@@ -140,45 +166,151 @@ fun HomePage() {
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
         Text(
             text = "Restaurants near you",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 16.dp),
+            modifier = Modifier.padding(vertical = 16.dp)
         )
+
         when {
-            isLoading -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            isLoading -> {
+                Box(
+                    Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-            errorMessage != null -> Text(errorMessage!!, color = Color.Red)
-            restaurants.isEmpty() -> Text("No restaurants found for your preferences.")
-            else -> LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp),
-            ) {
-                items(restaurants, key = { it.id }) { restaurant -> RestaurantCard(restaurant) }
+
+            errorMessage != null -> {
+                Text(
+                    errorMessage!!,
+                    color = Color.Red
+                )
+            }
+
+            restaurants.isEmpty() -> {
+                Text("No restaurants found for your preferences.")
+            }
+
+            else -> {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(
+                        restaurants,
+                        key = { it.id }
+                    ) { restaurant ->
+
+                        RestaurantCard(
+                            restaurant = restaurant,
+                            isFavorite = restaurant.id in favoriteIds,
+
+                            onFavoriteClick = {
+                                val existingFavorite =
+                                    favoriteList.find {
+                                        it.restaurantId == restaurant.id
+                                    }
+
+                                coroutineScope.launch {
+                                    if (existingFavorite != null) {
+                                        database.favoriteDao()
+                                            .deleteFavorite(existingFavorite)
+                                    } else {
+                                        database.favoriteDao()
+                                            .addFavorite(
+                                                FavoriteEntity(
+                                                    userId = PROFILE_USER_ID,
+                                                    restaurantId = restaurant.id,
+                                                    restaurantName = restaurant.name,
+                                                    restaurantAddress = "",
+                                                    restaurantImgURL = restaurant.imageUrl
+                                                )
+                                            )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun RestaurantCard(restaurant: Restaurant) {
-    // Each card uses an image returned by Foursquare and fills with a fallback when there is no image
-    Card(Modifier.fillMaxWidth()) {
+fun RestaurantCard(
+    restaurant: Restaurant,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Column {
             if (restaurant.imageUrl != null) {
-                AsyncImage(restaurant.imageUrl, contentDescription = "Photo of ${restaurant.name}",
-                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop)
+                AsyncImage(
+                    model = restaurant.imageUrl,
+                    contentDescription = "Photo of ${restaurant.name}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
             } else {
-                Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("No image available")
                 }
             }
-            Text(restaurant.name, fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = restaurant.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = onFavoriteClick
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) {
+                            Icons.Default.Favorite
+                        } else {
+                            Icons.Default.FavoriteBorder
+                        },
+                        contentDescription = if (isFavorite) {
+                            "Remove from favorites"
+                        } else {
+                            "Add to favorites"
+                        },
+                        tint = if (isFavorite) {
+                            Color.Red
+                        } else {
+                            Color.Gray
+                        }
+                    )
+                }
+            }
         }
     }
 }

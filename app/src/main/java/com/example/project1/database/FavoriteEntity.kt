@@ -27,5 +27,6 @@ data class FavoriteEntity(
     val userId: Long,
     val restaurantId: String,
     val restaurantName: String,
-    val restaurantAddress: String
+    val restaurantAddress: String,
+    val restaurantImgURL:String?
 )

@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,7 +7,7 @@ plugins {
 
     alias(libs.plugins.detekt)
 }
-import java.util.Properties
+
 
 val localProperties = Properties() //Reads the API key stored in the local.properties
 // so that the API key isn't comitted to github
