@@ -56,10 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.project1.ui.theme.Project1Theme
 import android.content.Intent
 import androidx.compose.material3.Button
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-import com.example.project1.database.AppDatabase
 
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
