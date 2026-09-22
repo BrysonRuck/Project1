@@ -1,5 +1,6 @@
 package com.example.project1
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,9 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.Button
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -98,11 +101,27 @@ fun HomePage() {
 
 @Composable
 fun ProfilePage() {
-    PageContent(
-        title = "Profile",
-        subtitle = stringResource(R.string.profile_subtitle),
-        body = stringResource(R.string.profile_body)
-    )
+    val context = LocalContext.current
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Profile", fontSize = 24.sp,
+            fontWeight = FontWeight.Bold)
+        Button(onClick = {
+            context.startActivity(Intent(context, CreateAccActivity::class.java))
+
+        }) {
+            Text("Create an Account")
+        }
+
+        Text("Already have an account?")
+        Button(onClick = {
+            context.startActivity(Intent(context, LoginActivity::class.java))
+        }) {
+            Text("Log In")
+        }
+    }
 }
 
 @Composable
