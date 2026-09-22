@@ -73,6 +73,11 @@ class LoginActivity : ComponentActivity() {
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
         val snackbarHostState = remember { SnackbarHostState() }
+        Button(onClick = {
+            context.startActivity(
+                Intent(context, MainActivity::class.java)
+            )
+        }){Text("Back") }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             TextField(
                 modifier = Modifier.testTag("usernameField"),
@@ -107,7 +112,7 @@ class LoginActivity : ComponentActivity() {
             }
             Text("Don't have an account?")
             Button(onClick = {
-                context.startActivity(Intent(context, CreateAccActivity()::class.java))
+                context.startActivity(Intent(context, CreateAccActivity::class.java))
             }) {
                 Text("Create account")
             }
