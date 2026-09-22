@@ -23,6 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import com.example.project1.ui.theme.Project1Theme
+import android.app.Activity
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.project1.database.AppDatabase
+import kotlinx.coroutines.launch
 
 //Like javaFX, any activities I make need to extend what's called ComponentActivity() because it needs to invoke a constructor of ComponentActivity.
 //this concept of extending a constructor in a class is new. i will do more learning
@@ -65,6 +69,12 @@ class LoginActivity : ComponentActivity() {
     fun LoginScreen() {
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
+        val context = LocalContext.current
+        val database = remember(context) {
+            AppDatabase.getDatabase(context)
+        }
+        val coroutineScope = rememberCoroutineScope()
+        var loginMessage by remember { mutableStateOf("") }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             TextField(
                 modifier = Modifier.testTag("usernameField"),
@@ -79,11 +89,37 @@ class LoginActivity : ComponentActivity() {
                 label = { Text("Password") }
             )
             Button(onClick = {
-                // TODO: check db to see if user/pass exist TOGETHER
+                val enteredUsername = username.trim()
+
+                when {
+                    enteredUsername.isBlank() || password.isBlank() -> {
+                        loginMessage = "Enter both a username and password."
+                    }
+
+                    else -> {
+                        coroutineScope.launch {
+                            val user = database.userDao().getUserByUsername(enteredUsername)
+
+                            if (user == null || user.password != password) {
+                                loginMessage = "Invalid username or password."
+                            } else {
+                                UserSession.saveUserId(context, user.userId)
+
+                                context.startActivity(
+                                    Intent(context, MainActivity::class.java)
+                                )
+                                (context as? Activity)?.finish()
+                            }
+                        }
+                    }
+                }
             }) {
                 Text("Log in")
             }
-            val context = LocalContext.current
+            if (loginMessage.isNotBlank()) {
+                Text(loginMessage)
+            }
+
             Text("Don't have an account?")
             Button(onClick = {
                 // TODO: redirect to acc creation..
