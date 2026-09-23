@@ -30,6 +30,13 @@
             </intent-filter>
 
         </activity>
+
+        <activity
+            android:name=".CreateAccActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Project1" />
+
         <activity
             android:name=".LoginActivity"
             android:exported="true"

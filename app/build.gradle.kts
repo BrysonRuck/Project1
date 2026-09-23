@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
-
     alias(libs.plugins.detekt)
 }
 
@@ -58,9 +57,13 @@ android {
         buildConfig = true
     }
 }
-dependencies {
-    androidTestImplementation("androidx.room:room-testing:2.6.1")
 
+// Forces Gradle to use its own isolated Java 21, bypassing your machine's 25.0.2 error
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -88,9 +91,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     detektPlugins(libs.detekt.formatting)
 }
+
 detekt {
     buildUponDefaultConfig = true
     allRules = false
+    autoCorrect = false // Kept false so it only flags issues for your learning
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
