@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="nav_default">#FF757575</color>
+    <color name="nav_selected">#FF6200EE</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Project1</string>
+    <string name="favorites_body">This is the body of the Favorites page content.</string>
+    <string name="favorites_subtitle">Your Favorite Items</string>
+    <string name="home_body">This is the body of the Home page content.</string>
+    <string name="home_subtitle">Welcome to the Home page</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_profile">Profile</string>
+    <string name="profile_body">This is the body of the Profile page content.</string>
+    <string name="profile_subtitle">User Profile Information</string>
+    <string name="title_activity_set_preferences">SetPreferencesActivity</string>
+    <style name="Theme.Project1" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>
