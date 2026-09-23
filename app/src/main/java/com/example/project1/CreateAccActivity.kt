@@ -29,6 +29,7 @@ import com.example.project1.ui.theme.Project1Theme
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import com.example.project1.MainActivity
 import com.example.project1.database.UserEntity
 
@@ -58,11 +59,10 @@ class CreateAccActivity : ComponentActivity() {
                     CreateAccScreen(
                         modifier = Modifier.padding(innerPadding),
                         onBack = {
-                            //navigation
+                            navigateToMainActivity()
                         },
                         onCreateAccount = { username, password, address ->
-                            createAcc(
-                                userDao = userDao,
+                            createAcc(                               userDao = userDao,
                                 username = username,
                                 password = password,
                                 address = address,
@@ -74,4 +74,142 @@ class CreateAccActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun createAcc(
+        userDao: UserDao,
+        username: String,
+        password: String,
+        address: String,
+        snackbarHostState: SnackbarHostState,
+    ) {
+        lifecycleScope.launch {
+            when (
+                createUser(
+                    userDao = userDao,
+                    username = username,
+                    password = password,
+                    address = address
+                )
+            ) {
+                AccCreationResult.SUCCESS -> {
+                    startActivity(
+                        Intent(
+                            this@CreateAccActivity,
+                            LoginActivity::class.java
+                        )
+                    )
+                    finish()
+                }
+
+                AccCreationResult.EMPTY_FIELD -> {
+                    snackbarHostState.showSnackbar(
+                        "Please complete all fields"
+                    )
+                }
+
+                AccCreationResult.USERNAME_TAKEN -> {
+                    snackbarHostState.showSnackbar(
+                        "Username already exists"
+                    )
+                }
+            }
+        }
+    }
+    private suspend fun createUser(
+        userDao: UserDao,
+        username: String,
+        password: String,
+        address: String,
+    ): AccountCreationResult {
+        if (
+            username.isBlank() ||
+            password.isBlank() ||
+            address.isBlank()
+        ) {
+            return AccountCreationResult.EMPTY_FIELD
+        }
+
+        if (userDao.getUserByUsername(username) != null) {
+            return AccountCreationResult.USERNAME_TAKEN
+        }
+
+        userDao.insertUser(
+            UserEntity(
+                username = username,
+                password = password,
+                address = address
+            )
+        )
+
+        return AccountCreationResult.SUCCESS
+    }
+
+    private fun navigateToMainActivity() {
+        startActivity(
+            Intent(this, MainActivity::class.java)
+        )
+        finish()
+    }
 }
+
+private enum class AccountCreationResult {
+    SUCCESS,
+    EMPTY_FIELD,
+    USERNAME_TAKEN
+}
+
+@Composable
+private fun CreateAccScreen(
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit,
+    onCreateAccount: (String, String, String) -> Unit,
+) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Create an Account")
+
+        Button(onClick = onBack) {
+            Text("Back")
+        }
+
+        TextField(
+            modifier = Modifier.testTag("usernameField"),
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") },
+            singleLine = true
+        )
+
+        TextField(
+            modifier = Modifier.testTag("passwordField"),
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            singleLine = true
+        )
+
+        TextField(
+            modifier = Modifier.testTag("addressField"),
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Rough location") },
+            singleLine = true
+        )
+
+        Button(
+            onClick = {
+                onCreateAccount(username, password, address)
+            }
+        ) {
+            Text("Create account")
+        }
+    }
+}
+
