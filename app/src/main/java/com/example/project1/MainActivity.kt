@@ -110,7 +110,6 @@ fun ProfilePage() {
             fontWeight = FontWeight.Bold)
         Button(onClick = {
             context.startActivity(Intent(context, CreateAccActivity::class.java))
-
         }) {
             Text("Create an Account")
         }
