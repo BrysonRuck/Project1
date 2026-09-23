@@ -124,8 +124,10 @@ fun HomePage() {
     var randomizerRequest by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
-    // This is where the load preference is done and make the network request once Home enters composition
-    LaunchedEffect(Unit) {
+    // Load the preferences and request a fresh, shuffled restaurant list.
+    LaunchedEffect(randomizerRequest) {
+        isLoading = true
+        errorMessage = null
         try {
             val user = AppDatabase.getDatabase(context)
                 .userDao().getUserById(1L)
