@@ -121,6 +121,7 @@ fun HomePage() {
     var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
     var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var randomizerRequest by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
     // This is where the load preference is done and make the network request once Home enters composition
