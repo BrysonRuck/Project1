@@ -120,17 +120,17 @@ class CreateAccActivity : ComponentActivity() {
         username: String,
         password: String,
         address: String,
-    ): AccountCreationResult {
+    ): AccCreationResult {
         if (
             username.isBlank() ||
             password.isBlank() ||
             address.isBlank()
         ) {
-            return AccountCreationResult.EMPTY_FIELD
+            return AccCreationResult.EMPTY_FIELD
         }
 
         if (userDao.getUserByUsername(username) != null) {
-            return AccountCreationResult.USERNAME_TAKEN
+            return AccCreationResult.USERNAME_TAKEN
         }
 
         userDao.insertUser(
@@ -141,7 +141,7 @@ class CreateAccActivity : ComponentActivity() {
             )
         )
 
-        return AccountCreationResult.SUCCESS
+        return AccCreationResult.SUCCESS
     }
 
     private fun navigateToMainActivity() {
@@ -152,7 +152,8 @@ class CreateAccActivity : ComponentActivity() {
     }
 }
 
-private enum class AccountCreationResult {
+//this helps me manage the oh fuck i need to write tests fuck my chud life
+private enum class AccCreationResult {
     SUCCESS,
     EMPTY_FIELD,
     USERNAME_TAKEN
