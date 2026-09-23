@@ -57,7 +57,13 @@ import com.example.project1.database.AppDatabase
 import com.example.project1.network.FoursquareRepository
 import com.example.project1.network.Restaurant
 import com.example.project1.ui.theme.Project1Theme
-
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.project1.database.FavoriteEntity
+import kotlinx.coroutines.launch
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
     object Favorites : Screen("favorites", R.string.nav_favorites, Icons.Default.Favorite)
@@ -165,8 +171,22 @@ fun HomePage(currentUserId: Long) {
     var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
     var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
 
+    val database = remember(context) {
+        AppDatabase.getDatabase(context)
+    }
+    val favoriteList by database.favoriteDao()
+        .observeFavoritesForUser(currentUserId)
+        .collectAsState(initial = emptyList())
+
+    // Just the restaurant IDs that are currently favorited
+    val favoriteIds = favoriteList
+        .map { it.restaurantId }
+        .toSet()
+//coroutine is being used so that the room database can be updated at the same time as other stuff going on
+    val coroutineScope = rememberCoroutineScope()
     // This is where the load preference is done and make the network request once Home enters composition
     LaunchedEffect(currentUserId) {
         try {
@@ -222,48 +242,102 @@ fun HomePage(currentUserId: Long) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(restaurants, key = { it.id }) { restaurant ->
-                        RestaurantCard(restaurant)
+                    items(
+                        restaurants,
+                        key = { it.id }
+                    ) { restaurant ->
+
+                        RestaurantCard(
+                            restaurant = restaurant,
+                            isFavorite = restaurant.id in favoriteIds,
+
+                            onFavoriteClick = {
+                                val existingFavorite = favoriteList.find {
+                                    it.restaurantId == restaurant.id
+                                }
+
+                                coroutineScope.launch {
+                                    if (existingFavorite != null) {
+                                        database.favoriteDao()
+                                            .deleteFavorite(existingFavorite)
+                                    } else {
+                                        database.favoriteDao()
+                                            .addFavorite(
+                                                FavoriteEntity(
+                                                    userId = currentUserId,
+                                                    restaurantId = restaurant.id,
+                                                    restaurantName = restaurant.name,
+                                                    restaurantAddress = ""
+                                                )
+                                            )
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
+
             }
         }
     }
 }
 
 @Composable
-fun RestaurantCard(restaurant: Restaurant) {
+fun RestaurantCard(restaurant: Restaurant, isFavorite: Boolean, onFavoriteClick: () -> Unit) {
     // Pro Place Search does not return Premium photo data, so cards use a fallback image state.
     Card(Modifier.fillMaxWidth()) {
-        Column {
-            if (restaurant.imageUrl != null) {
-                AsyncImage(
-                    model = restaurant.imageUrl,
-                    contentDescription = "Photo of ${restaurant.name}",
+
+            Column {
+
+                Text(
+                    text = restaurant.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
+                        .padding(16.dp)
                 )
-            } else {
-                Box(
-                    Modifier
+
+                Row(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(start = 16.dp, end = 8.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("No image available")
+
+                    Text(
+                        text = if (isFavorite) {
+                            "Saved to favorites"
+                        } else {
+                            "Add to favorites"
+                        },
+                        modifier = Modifier.weight(1f),
+                        fontSize = 14.sp
+                    )
+                    //Favorite button to add to Favorites page
+                    IconButton(
+                        onClick = onFavoriteClick
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) {
+                                Icons.Default.Favorite
+                            } else {
+                                Icons.Default.FavoriteBorder
+                            },
+                            contentDescription = if (isFavorite) {
+                                "Remove from favorites"
+                            } else {
+                                "Add to favorites"
+                            },
+                            tint = if (isFavorite) {
+                                Color.Red
+                            } else {
+                                Color.Gray
+                            }
+                        )
+                    }
                 }
             }
-
-            Text(
-                restaurant.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
     }
 }
 
