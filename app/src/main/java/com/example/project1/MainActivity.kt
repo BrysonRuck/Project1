@@ -165,7 +165,7 @@ fun HomePage() {
 
 @Composable
 fun RestaurantCard(restaurant: Restaurant) {
-    // Each card uses an image returned by Foursquare and fills with a fallback when there is no image
+    // Pro Place Search does not return Premium photo data, so cards use a fallback image state.
     Card(Modifier.fillMaxWidth()) {
         Column {
             if (restaurant.imageUrl != null) {
