@@ -87,7 +87,8 @@ fun FavoritePage(currentUserId: Long) {
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-  /*                          AsyncImage(
+  /*    Was for if we had images added
+                        AsyncImage(
                                 model = favorite.restaurantImgURL,
                                 contentDescription = favorite.restaurantName,
                                 modifier = Modifier
