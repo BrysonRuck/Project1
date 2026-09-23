@@ -1,3 +1,6 @@
+import java.util.Properties
+//imports like these should stay AT THE TOP because it was screaming at me and gave me a whole lot of errors.
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +8,17 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.detekt)
 }
+
+
+val localProperties = Properties() //Reads the API key stored in the local.properties
+// so that the API key isn't comitted to github
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use(localProperties::load)
+}
+val foursquareApiKey = localProperties.getProperty("FOURSQUARE_API_KEY", "")
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
 
 android {
     namespace = "com.example.project1"
@@ -18,6 +32,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "FOURSQUARE_API_KEY", "\"$foursquareApiKey\"")
     }
 
     buildTypes {
@@ -38,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -55,6 +72,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.okhttp)
+    implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
