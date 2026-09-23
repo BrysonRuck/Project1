@@ -18,7 +18,7 @@ data class Restaurant(
 class FoursquareRepository(
     private val client: OkHttpClient = OkHttpClient(),
 ) {
-    suspend fun searchRestaurants(address: String, distanceMiles: Int): List<Restaurant> =
+    suspend fun searchRestaurants(address: String, _distanceMiles: Int): List<Restaurant> =
         withContext(Dispatchers.IO) {
             // The key is intentionally checked at runtime so that app still builds
             // this is for the team members who have not added the API key to the local.properties file
@@ -30,9 +30,8 @@ class FoursquareRepository(
                 .newBuilder()
                 .addQueryParameter("query", "restaurant")
                 .addQueryParameter("near", address)
-                .addQueryParameter("radius", (distanceMiles * 1609.34).toInt().coerceAtMost(100_000).toString())
                 .addQueryParameter("limit", "20")
-                .addQueryParameter("fields", "fsq_place_id,name,photos")
+                .addQueryParameter("fields", "fsq_place_id,name")
                 .build()
 
             // This is where the service keys are sent as bearer tokens and the API version is explicit
@@ -55,16 +54,8 @@ class FoursquareRepository(
                         val id = place.optString("fsq_place_id").ifBlank { place.optString("fsq_id") }
                         val name = place.optString("name")
                         if (id.isBlank() || name.isBlank()) continue
-                        //This is where Foursquare photo URLs are assembled and its based on prefix's are suffix's
-                        val photo = place.optJSONArray("photos")?.optJSONObject(0)
-                        val imageUrl = photo?.let {
-                            val prefix = it.optString("prefix")
-                            val suffix = it.optString("suffix")
-                            if (prefix.isNotBlank() && suffix.isNotBlank()) {
-                                "${prefix}original$suffix"
-                            } else null
-                        }
-                        add(Restaurant(id, name, imageUrl))
+
+                        add(Restaurant(id, name, imageUrl = null))
                     }
                 }
             }
