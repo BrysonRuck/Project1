@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Favorites.route) {
-                            FavoritePage()
+                            FavoritePage(currentUserId)
                         }
 
                         composable(Screen.Profile.route) {
