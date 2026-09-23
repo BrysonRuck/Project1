@@ -16,6 +16,8 @@ class SetPreferencesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val currentUserId = intent.getLongExtra(EXTRA_USER_ID, NO_USER_ID)
+
         setContent {
             Project1Theme {
                 val database = remember {
@@ -25,9 +27,14 @@ class SetPreferencesActivity : ComponentActivity() {
                 var user by remember { mutableStateOf<UserEntity?>(null) }
                 var loadMessage by remember { mutableStateOf("") }
 
-                LaunchedEffect(Unit) {
+                LaunchedEffect(currentUserId) {
+                    if (currentUserId == NO_USER_ID) {
+                        loadMessage = "Error: could not load the current user."
+                        return@LaunchedEffect
+                    }
+
                     try {
-                        user = database.userDao().getUserById(CURRENT_USER_ID)
+                        user = database.userDao().getUserById(currentUserId)
 
                         if (user == null) {
                             loadMessage = "Error: could not load the current user."
@@ -68,8 +75,8 @@ class SetPreferencesActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val CURRENT_USER_ID = 1L
-        //CHANGE THIS TO THE ACTUAL USER THAT'S BEING CHANGED; THE CURRENT ONE SIGNED IN
-        // REMEMBER THIS
+        private const val NO_USER_ID = -1L
     }
+
+    //i'm finally done with this god awful user id session thing holy FUCK man
 }
