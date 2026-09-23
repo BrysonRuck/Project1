@@ -77,4 +77,6 @@ class SetPreferencesActivity : ComponentActivity() {
     companion object {
         private const val NO_USER_ID = -1L
     }
+
+    //i'm finally done with this god awful user id session thing holy FUCK man
 }
