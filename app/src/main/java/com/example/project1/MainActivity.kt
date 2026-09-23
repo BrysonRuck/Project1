@@ -144,18 +144,33 @@ fun HomePage() {
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(vertical = 16.dp),
         )
-        when {
-            isLoading -> Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            when {
+                isLoading -> CircularProgressIndicator()
+                errorMessage != null -> Text(errorMessage!!, color = Color.Red)
+                restaurants.isEmpty() -> Text("No restaurants found for your preferences.")
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                ) {
+                    items(restaurants, key = { it.id }) { restaurant -> RestaurantCard(restaurant) }
+                }
             }
-            errorMessage != null -> Text(errorMessage!!, color = Color.Red)
-            restaurants.isEmpty() -> Text("No restaurants found for your preferences.")
-            else -> LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp),
-            ) {
-                items(restaurants, key = { it.id }) { restaurant -> RestaurantCard(restaurant) }
-            }
+        }
+        Button(
+            onClick = { randomizerRequest++ },
+            enabled = !isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+        ) {
+            Text("Randomize Restaurants")
         }
     }
 }
