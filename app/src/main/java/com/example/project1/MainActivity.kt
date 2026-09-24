@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,12 +19,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -34,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,9 +58,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.project1.database.AppDatabase
+import com.example.project1.database.FavoriteEntity
 import com.example.project1.network.FoursquareRepository
 import com.example.project1.network.Restaurant
 import com.example.project1.ui.theme.Project1Theme
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) {
     object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
@@ -64,7 +70,7 @@ sealed class Screen(val route: String, val labelId: Int, val icon: ImageVector) 
     object Profile : Screen("profile", R.string.nav_profile, Icons.Default.Person)
 }
 
-const val EXTRA_USER_ID = "com.example.project1.extra.USER_ID"
+const val EXTRA_USER_ID = SetPreferencesActivity.EXTRA_USER_ID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,7 +138,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Screen.Favorites.route) {
-                            FavoritePage()
+                            FavoritePage(currentUserId)
                         }
 
                         composable(Screen.Profile.route) {
@@ -165,14 +171,30 @@ fun HomePage(currentUserId: Long) {
     var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
     var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var randomizerRequest by remember { mutableStateOf(0) }
+
     val context = LocalContext.current
 
+    val database = remember(context) {
+        AppDatabase.getDatabase(context)
+    }
+    val favoriteList by database.favoriteDao()
+        .observeFavoritesForUser(currentUserId)
+        .collectAsState(initial = emptyList())
+
+    // Just the restaurant IDs that are currently favorited
+    val favoriteIds = favoriteList
+        .map { it.restaurantId }
+        .toSet()
+    // coroutine is being used so that the room database can be updated at the same time as other stuff going on
+    val coroutineScope = rememberCoroutineScope()
+
     // This is where the load preference is done and make the network request once Home enters composition
-    LaunchedEffect(currentUserId) {
+    LaunchedEffect(currentUserId, randomizerRequest) {
+        isLoading = true
+        errorMessage = null
         try {
-            val user = AppDatabase.getDatabase(context)
-                .userDao()
-                .getUserById(currentUserId)
+            val user = database.userDao().getUserById(currentUserId)
 
             if (user == null) {
                 error("No saved preferences found")
@@ -199,40 +221,75 @@ fun HomePage(currentUserId: Long) {
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        when {
-            isLoading -> {
-                Box(
-                    Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                isLoading -> CircularProgressIndicator()
 
-            errorMessage != null -> {
-                Text(errorMessage!!, color = Color.Red)
-            }
+                errorMessage != null -> Text(errorMessage!!, color = Color.Red)
 
-            restaurants.isEmpty() -> {
-                Text("No restaurants found for your preferences.")
-            }
+                restaurants.isEmpty() -> Text("No restaurants found for your preferences.")
 
-            else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(restaurants, key = { it.id }) { restaurant ->
-                        RestaurantCard(restaurant)
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(
+                            restaurants,
+                            key = { it.id }
+                        ) { restaurant ->
+                            RestaurantCard(
+                                restaurant = restaurant,
+                                isFavorite = restaurant.id in favoriteIds,
+                                onFavoriteClick = {
+                                    val existingFavorite = favoriteList.find {
+                                        it.restaurantId == restaurant.id
+                                    }
+
+                                    coroutineScope.launch {
+                                        if (existingFavorite != null) {
+                                            database.favoriteDao()
+                                                .deleteFavorite(existingFavorite)
+                                        } else {
+                                            database.favoriteDao()
+                                                .addFavorite(
+                                                    FavoriteEntity(
+                                                        userId = currentUserId,
+                                                        restaurantId = restaurant.id,
+                                                        restaurantName = restaurant.name,
+                                                        restaurantAddress = ""
+                                                    )
+                                                )
+                                        }
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        Button(
+            onClick = { randomizerRequest++ },
+            enabled = !isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        ) {
+            Text("Randomize Restaurants")
         }
     }
 }
 
 @Composable
-fun RestaurantCard(restaurant: Restaurant) {
+fun RestaurantCard(restaurant: Restaurant, isFavorite: Boolean, onFavoriteClick: () -> Unit) {
     // Pro Place Search does not return Premium photo data, so cards use a fallback image state.
     Card(Modifier.fillMaxWidth()) {
         Column {
@@ -246,23 +303,55 @@ fun RestaurantCard(restaurant: Restaurant) {
                         .clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop
                 )
-            } else {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No image available")
-                }
             }
 
             Text(
-                restaurant.name,
+                text = restaurant.name,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isFavorite) {
+                        "Saved to favorites"
+                    } else {
+                        "Add to favorites"
+                    },
+                    modifier = Modifier.weight(1f),
+                    fontSize = 14.sp
+                )
+                // Favorite button to add to Favorites page
+                IconButton(
+                    onClick = onFavoriteClick
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) {
+                            Icons.Default.Favorite
+                        } else {
+                            Icons.Default.FavoriteBorder
+                        },
+                        contentDescription = if (isFavorite) {
+                            "Remove from favorites"
+                        } else {
+                            "Add to favorites"
+                        },
+                        tint = if (isFavorite) {
+                            Color.Red
+                        } else {
+                            Color.Gray
+                        }
+                    )
+                }
+            }
         }
     }
 }

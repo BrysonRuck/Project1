@@ -16,7 +16,10 @@ class SetPreferencesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val currentUserId = intent.getLongExtra(EXTRA_USER_ID, NO_USER_ID)
+        val currentUserId = intent.getLongExtra(
+            EXTRA_USER_ID,
+            UserSession.getUserId(this) ?: NO_USER_ID
+        )
 
         setContent {
             Project1Theme {
@@ -75,6 +78,7 @@ class SetPreferencesActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_USER_ID = "extra_user_id"
         private const val NO_USER_ID = -1L
     }
 
