@@ -202,6 +202,7 @@ fun HomePage(currentUserId: Long) {
 
             restaurants = FoursquareRepository()
                 .searchRestaurants(user.address, user.distanceMiles)
+                .shuffled()
         } catch (error: Exception) {
             errorMessage = error.message ?: "Could not load restaurants"
         } finally {
@@ -277,7 +278,13 @@ fun HomePage(currentUserId: Long) {
         }
 
         Button(
-            onClick = { randomizerRequest++ },
+            onClick = {
+                if (restaurants.isNotEmpty()) {
+                    restaurants = restaurants.shuffled()
+                } else {
+                    randomizerRequest++
+                }
+            },
             enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
